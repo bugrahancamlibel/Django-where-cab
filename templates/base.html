@@ -11,8 +11,14 @@
     <title>{% block title %} {% endblock %} | Blogapp</title>
 </head>
 <body>
-    {% block content %}{% endblock %}
 
+    <nav class="navbar navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" href="">Blogapp</a>
+        </div>
+    </nav>
+
+    {% block content %}{% endblock %}
     <script src="{% static 'js/bootstrap.min.js' %}"></script>
     <script src="{% static 'js/base.js' %}"></script>
     {% block js_files %} {% endblock %}

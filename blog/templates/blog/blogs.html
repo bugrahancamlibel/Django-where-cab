@@ -5,10 +5,20 @@
 {% endblock %}
 
 {% block content %}
-<ul>
-    <li><a href="">Home</a></li>
-    <li><a href="">Blogs</a></li>
-</ul>
-<h1>Blogs</h1>
+    <div class="container mt-3">
+        <div class="row">
+            <div class="col-3">
+                {% include 'partials/_categories.html' %}
+            </div>
+            <div class="col-9">
+                <h1>BLOGS</h1>
+                {% for blog in blogs %}
+                    {% if blog.is_active %}
+                        {% include 'partials/_blog.html' %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 
 {% endblock %}

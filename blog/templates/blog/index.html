@@ -10,11 +10,23 @@
 {% endblock %}
 
 {% block content %}
-<ul>
-    <h1>Home Page</h1>
-    <li><a href="">Home</a></li>
-    <li><a href="">Blogs</a></li>
-</ul>
+
+<div class="container mt-3">
+        <div class="row">
+            <div class="col-3">
+                {% include 'partials/_categories.html' %}
+            </div>
+            <div class="col-9">
+                <h1>Homepage</h1>
+                {% for blog in blogs %}
+                    {% if blog.is_home %}
+                        {% include 'partials/_blog.html' %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block js_files %}

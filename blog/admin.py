@@ -7,7 +7,7 @@ from .models import Blog, Category
 class BlogAdmin(admin.ModelAdmin):
     list_display = ("title", "is_active", "is_home")
     list_editable = ("is_active", "is_home")
-    search_fields = "title"
+    # search_fields = ("title", )
 
 
 admin.site.register(Blog, BlogAdmin)

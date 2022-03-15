@@ -10,7 +10,6 @@
                 <h5 class="card-title">
                     <a href="{% url 'blog_details' blog.slug %}">
                         {{ blog.title }}
-                        Web geliştirme kursu
                     </a>
                 </h5>
                 <p class="card-text"> {{ blog.description|striptags|slice:"0:50" }}</p>

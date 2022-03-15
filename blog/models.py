@@ -25,7 +25,9 @@ class Blog(models.Model):
     is_active = models.BooleanField(default=False)
     is_home = models.BooleanField(default=False)
     slug = models.SlugField(null=False, blank=True, unique=True, db_index=True, editable=False)
-    category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL) # kategori silindiğinde bu blog
+    categories = models.ManyToManyField(Category, blank=True)
+
+    #category = models.ForeignKey(Category, null=True, on_delete=models.SET_NULL) # kategori silindiğinde bu blog
                                                                                 # silinmez kategorisi null olur
 
     def __str__(self):

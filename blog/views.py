@@ -3,7 +3,6 @@ from django.shortcuts import render
 from blog.models import Blog, Category
 
 
-
 # Create your views here.
 
 # BURDA: urls.py daki url lere karşılık gelecek fonksiyonları yazıyoruz.
@@ -29,5 +28,12 @@ def blog_details(request, slug):
         "blog": blog
     })
 
+
 def blogs_by_category(request, slug):
-    pass
+    context = {
+        "blogs": Category.objects.get(slug=slug).blog_set.filter(is_active=True),
+        # "blogs": Blog.objects.filter(is_active=True, category__slug=slug),
+        "categories": Category.objects.all(),
+        "selected_category": slug
+    }
+    return render(request, "blog/blogs.html", context)

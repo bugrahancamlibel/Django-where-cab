@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 
 def login_request(request):
     if request.user.is_authenticated:
-        return redirect("home")
+        return redirect("view_map")
     if request.method == 'POST':
         username = request.POST["username"]
         password = request.POST["password"]
@@ -16,7 +16,7 @@ def login_request(request):
 
         if user is not None:
             login(request, user)
-            return redirect("home")
+            return redirect("view_map")
         else:
             return render(request, "account/login.html", {
                 "error": "Username and password are not matching"

@@ -6,3 +6,6 @@ django-js-asset==2.0.0
 Pillow==9.0.1
 sqlparse==0.4.2
 tzdata==2021.5
+
+django-os-geocoder~=0.1.6
+folium~=0.12.1.post1

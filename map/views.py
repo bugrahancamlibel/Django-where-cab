@@ -3,7 +3,7 @@ import folium
 import geocoder
 import pika, sys, os
 import re
-# import pymongo
+import threading
 from pymongo import MongoClient
 
 # Create your views here.
@@ -47,7 +47,7 @@ def receive():
     method_frame, header_frame, body = channel.basic_get(queue='hello')
     if method_frame is None:
         connection.close()
-        return ''
+        return None
     else:
         channel.basic_ack(delivery_tag=method_frame.delivery_tag)
         connection.close()
@@ -56,6 +56,19 @@ def receive():
 
 
 def view_map(request):
+    cluster = MongoClient("mongodb://bugra:bugra@cluster0-shard-00-00.1foqp.mongodb.net:27017,"
+                          "cluster0-shard-00-01.1foqp.mongodb.net:27017,"
+                          "cluster0-shard-00-02.1foqp.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-hpmscs"
+                          "-shard-0&authSource=admin&retryWrites=true&w=majority")
+    print("after cluster")
+    db = cluster["test_db"]
+    collection = db["csv_info_test"]
+
+    def send_to_mongo(locations):
+        i = 0
+        for i in range(0, 199):
+            collection.insert_one(locations[i])
+            print("posted!")
 
     data = list()
 
@@ -73,13 +86,17 @@ def view_map(request):
 
     # Receive things starts here:
     try:
+        # mongo thread burda tanımlansın
+        thread_mongo = threading.Thread(target=send_to_mongo, args=(data,), )
         for i in range(0, 199):
             location = receive()
-            print(f"lattype: {type(location['lat'])}, lngtype: {type(location['lng'])}")
-            lat = location['lat']
-            lng = location['lng']
-            folium.Marker(location=[lat, lng]).add_to(m)
-
+            # print(f"lattype: {type(location['lat'])}, lngtype: {type(location['lng'])}")
+            if location is not None:
+                lat = location['lat']
+                lng = location['lng']
+                folium.Marker(location=[lat, lng]).add_to(m)
+        # mongo thread burda başlasın
+        thread_mongo.start()
         m = m._repr_html_()
 
     except KeyboardInterrupt:
@@ -93,3 +110,6 @@ def view_map(request):
         'm': m,
     }
     return render(request, "map/main.html", context)
+
+
+

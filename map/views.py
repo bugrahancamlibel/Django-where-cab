@@ -6,13 +6,13 @@ import re
 import threading
 from pymongo import MongoClient
 
+
 # Create your views here.
 
 # m = folium.Map(location=[19, -12], zoom_start=2)
 
 
 def receive():
-
     def body_to_dict(body):
         s = body.decode('UTF-8')
         res = re.findall(r'\'.*?\'', s)
@@ -66,9 +66,10 @@ def view_map(request):
 
     def send_to_mongo(locations):
         i = 0
-        for i in range(0, 199):
+        for i in range(0, 1774):
             collection.insert_one(locations[i])
-            print("posted!")
+            print(f"posted!{i}")
+        print("they are all gone")
 
     data = list()
 
@@ -80,7 +81,7 @@ def view_map(request):
     # Create Map Object
     m = folium.Map(location=[19, -12], zoom_start=2)
     # folium.Marker([lat, lng], tooltip='Click for more', popup=country).add_to(m)
-    #folium.Marker([12.594, -0.219]).add_to(m)
+    # folium.Marker([12.594, -0.219]).add_to(m)
     # folium.Marker([37.593, 42.212]).add_to(m)
     # Get HTML Representation of Map Object
 
@@ -88,15 +89,24 @@ def view_map(request):
     try:
         # mongo thread burda tanımlansın
         thread_mongo = threading.Thread(target=send_to_mongo, args=(data,), )
-        for i in range(0, 199):
-            location = receive()
-            # print(f"lattype: {type(location['lat'])}, lngtype: {type(location['lng'])}")
-            if location is not None:
-                lat = location['lat']
-                lng = location['lng']
-                folium.Marker(location=[lat, lng]).add_to(m)
-        # mongo thread burda başlasın
-        thread_mongo.start()
+        location = receive()
+        if location is not None:
+            data.append(location)
+
+        if data:
+            while True:
+                location = receive()
+                if location is not None:
+                    data.append(location)
+                else:
+                    break
+
+        if data:
+            i = 0
+            for i in range(0, len(data)):
+                folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
+            thread_mongo.start()# Thread başlar
+
         m = m._repr_html_()
 
     except KeyboardInterrupt:
@@ -110,6 +120,3 @@ def view_map(request):
         'm': m,
     }
     return render(request, "map/main.html", context)
-
-
-

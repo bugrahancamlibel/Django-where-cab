@@ -28,7 +28,7 @@ def receive():
         # date = float(date)
         lat = float(lat)
         lng = float(lng)
-        # id = float(id)
+        id = int(id)
 
         # lat=> enlem
         # lng=> boylam
@@ -64,10 +64,31 @@ def view_map(request):
     db = cluster["test_db"]
     collection = db["csv_info_test"]
 
-    def send_to_mongo(locations):
+    def parse_date(date):
+        no_space = date.split()
+        ymd = no_space[0].split('-')
+        time = no_space[1].split(':')
+
+        month = ymd[1]
+        day = ymd[2]
+        hour = time[0]
+        minute = time[1]
+
+        date_dict = {
+            'month': month,
+            'day': day,
+            'hour': hour,
+            'minute': minute
+        }
+
+        # print(f"* month: {month}, day: {day}, hour: {hour}, minute: {minute}")
+
+        return date_dict
+
+    def send_to_mongo(data):
         i = 0
-        for i in range(0, 1774):
-            collection.insert_one(locations[i])
+        for i in range(0, len(data)):
+            collection.insert_one(data[i])
             print(f"posted!{i}")
         print("they are all gone")
 
@@ -88,24 +109,44 @@ def view_map(request):
     # Receive things starts here:
     try:
         # mongo thread burda tanımlansın
+        count_cars = 0
+
         thread_mongo = threading.Thread(target=send_to_mongo, args=(data,), )
         location = receive()
+        data.append(location)
         if location is not None:
-            data.append(location)
+            print("location is not none!")
+            if location['id'] == 4:
+                data.append(location)
+                count_cars += 1
+                date_dict = parse_date(location['date'])
+                print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date: {location['date']}")
+                print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
         if data:
             while True:
                 location = receive()
                 if location is not None:
-                    data.append(location)
+                    if location['id'] == 4:
+                        data.append(location)
+                        count_cars += 1
+                        date_dict = parse_date(location['date'])
+                        print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
+                        print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+
                 else:
                     break
+        if data:
+            if data[0]['id'] != 4:
+                data.pop(0)
+
+
 
         if data:
             i = 0
             for i in range(0, len(data)):
                 folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
-            thread_mongo.start()# Thread başlar
+            thread_mongo.start()  # Thread başlar
 
         m = m._repr_html_()
 

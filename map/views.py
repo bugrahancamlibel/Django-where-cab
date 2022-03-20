@@ -117,39 +117,52 @@ def view_map(request):
             data.append(location)
         if location is not None:
             print("location is not none!")
-            if location['id'] == 4:
+            if location['id'] == 2:
                 data.append(location)
                 count_cars += 1
                 date_dict = parse_date(location['date'])
-                print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date: {location['date']}")
-                print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+                # print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date: {location['date']}")
+                # print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
         if data:
             while True:
                 location = receive()
                 if location is not None:
-                    if location['id'] == 4:
+                    if location['id'] == 2:
                         data.append(location)
                         count_cars += 1
                         date_dict = parse_date(location['date'])
-                        print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
-                        print(f"* month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+                        # print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
+                        # print(f"* month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
                 else:
                     break
         if data:
-            if data[0]['id'] != 4:
+            if data[0]['id'] != 2:
                 data.pop(0)
-
-
 
         if data:
             i = 0
             last_data = parse_date(data[-1]['date'])
+            last_hour = int(last_data['hour'])
+            last_minute = int(last_data['minute'])
+            last_day = int(last_data['day'])
+            thirty_min_ago = last_minute - 30
+
+            if thirty_min_ago < 0:
+                thirty_min_ago = 60 + thirty_min_ago
+                last_hour -= 1
 
             for i in range(len(data)-1, 0, -1):
-
-                folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
+                curr = parse_date(data[i]['date'])
+                curr_hour = int(curr['hour'])
+                curr_min = int(curr['minute'])
+                curr_day = int(curr['day'])
+                #curr: 13.49    last: 16.52
+                if curr_day == last_day:
+                    if curr_min > thirty_min_ago and curr_hour == last_hour or curr_hour > last_hour and curr_min < thirty_min_ago:
+                        print(f"selam --->>> {data[i]['date']}")
+                        folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
             thread_mongo.start()  # Thread başlar
 
         m = m._repr_html_()

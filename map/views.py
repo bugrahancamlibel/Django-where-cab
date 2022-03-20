@@ -145,7 +145,10 @@ def view_map(request):
 
         if data:
             i = 0
-            for i in range(0, len(data)):
+            last_data = parse_date(data[-1]['date'])
+
+            for i in range(len(data)-1, 0, -1):
+
                 folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
             thread_mongo.start()  # Thread başlar
 

@@ -5,11 +5,23 @@ import pika, sys, os
 import re
 import threading
 from pymongo import MongoClient
+from django.contrib.auth.models import User
 
 
 # Create your views here.
 
 # m = folium.Map(location=[19, -12], zoom_start=2)
+from map.models import Customer, Cars
+
+
+usernamee = "bugra"
+
+userrname = "ali"
+
+cid = 2
+
+carsid = 4
+
 
 
 def receive():
@@ -56,6 +68,18 @@ def receive():
 
 
 def view_map(request):
+    username = request.user.username
+    print(username)
+
+    if username == usernamee:
+        id_car = cid
+
+
+    # name = Customer.objects.all()
+    cars = Cars.objects.all()
+
+
+
     cluster = MongoClient("mongodb://bugra:bugra@cluster0-shard-00-00.1foqp.mongodb.net:27017,"
                           "cluster0-shard-00-01.1foqp.mongodb.net:27017,"
                           "cluster0-shard-00-02.1foqp.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-hpmscs"
@@ -63,6 +87,9 @@ def view_map(request):
     print("after cluster")
     db = cluster["test_db"]
     collection = db["csv_info"]
+
+    if username == userrname:
+        id_car = carsid
 
     def parse_date(date):
         no_space = date.split()
@@ -117,7 +144,7 @@ def view_map(request):
             data.append(location)
         if location is not None:
             print("location is not none!")
-            if location['id'] == 2:
+            if location['id'] == id_car:
                 data.append(location)
                 count_cars += 1
                 date_dict = parse_date(location['date'])
@@ -128,7 +155,7 @@ def view_map(request):
             while True:
                 location = receive()
                 if location is not None:
-                    if location['id'] == 2:
+                    if location['id'] == id_car:
                         data.append(location)
                         count_cars += 1
                         date_dict = parse_date(location['date'])
@@ -138,7 +165,7 @@ def view_map(request):
                 else:
                     break
         if data:
-            if data[0]['id'] != 2:
+            if data[0]['id'] != id_car:
                 data.pop(0)
 
         if data:

@@ -62,7 +62,7 @@ def view_map(request):
                           "-shard-0&authSource=admin&retryWrites=true&w=majority")
     print("after cluster")
     db = cluster["test_db"]
-    collection = db["csv_info_test"]
+    collection = db["csv_info"]
 
     def parse_date(date):
         no_space = date.split()
@@ -113,7 +113,8 @@ def view_map(request):
 
         thread_mongo = threading.Thread(target=send_to_mongo, args=(data,), )
         location = receive()
-        data.append(location)
+        if location is not None:
+            data.append(location)
         if location is not None:
             print("location is not none!")
             if location['id'] == 4:
@@ -132,7 +133,7 @@ def view_map(request):
                         count_cars += 1
                         date_dict = parse_date(location['date'])
                         print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
-                        print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+                        print(f"* month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
                 else:
                     break

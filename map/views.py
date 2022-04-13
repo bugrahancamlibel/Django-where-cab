@@ -5,11 +5,23 @@ import pika, sys, os
 import re
 import threading
 from pymongo import MongoClient
+from django.contrib.auth.models import User
 
 
 # Create your views here.
 
 # m = folium.Map(location=[19, -12], zoom_start=2)
+from map.models import Customer, Cars
+
+
+usernamee = "bugra"
+
+userrname = "ali"
+
+cid = 2
+
+carsid = 1
+
 
 
 def receive():
@@ -56,6 +68,18 @@ def receive():
 
 
 def view_map(request):
+    username = request.user.username
+    print(username)
+
+    if username == usernamee:
+        id_car = cid
+
+
+    # name = Customer.objects.all()
+    cars = Cars.objects.all()
+
+
+
     cluster = MongoClient("mongodb://bugra:bugra@cluster0-shard-00-00.1foqp.mongodb.net:27017,"
                           "cluster0-shard-00-01.1foqp.mongodb.net:27017,"
                           "cluster0-shard-00-02.1foqp.mongodb.net:27017/myFirstDatabase?ssl=true&replicaSet=atlas-hpmscs"
@@ -63,6 +87,9 @@ def view_map(request):
     print("after cluster")
     db = cluster["test_db"]
     collection = db["csv_info"]
+
+    if username == userrname:
+        id_car = carsid
 
     def parse_date(date):
         no_space = date.split()
@@ -117,39 +144,52 @@ def view_map(request):
             data.append(location)
         if location is not None:
             print("location is not none!")
-            if location['id'] == 4:
+            if location['id'] == id_car:
                 data.append(location)
                 count_cars += 1
                 date_dict = parse_date(location['date'])
-                print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date: {location['date']}")
-                print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+                # print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date: {location['date']}")
+                # print(f"*month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
         if data:
             while True:
                 location = receive()
                 if location is not None:
-                    if location['id'] == 4:
+                    if location['id'] == id_car:
                         data.append(location)
                         count_cars += 1
                         date_dict = parse_date(location['date'])
-                        print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
-                        print(f"* month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
+                        # print(f"added{count_cars}st car. id:{location['id']}, lat: {location['lat']}, date {location['date']}")
+                        # print(f"* month {date_dict['month']}, day: {date_dict['day']}, hour: {date_dict['hour']}, minute:{date_dict['minute']}")
 
                 else:
                     break
         if data:
-            if data[0]['id'] != 4:
+            if data[0]['id'] != id_car:
                 data.pop(0)
-
-
 
         if data:
             i = 0
             last_data = parse_date(data[-1]['date'])
+            last_hour = int(last_data['hour'])
+            last_minute = int(last_data['minute'])
+            last_day = int(last_data['day'])
+            thirty_min_ago = last_minute - 30
+
+            if thirty_min_ago < 0:
+                thirty_min_ago = 60 + thirty_min_ago
+                last_hour -= 1
 
             for i in range(len(data)-1, 0, -1):
-
-                folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
+                curr = parse_date(data[i]['date'])
+                curr_hour = int(curr['hour'])
+                curr_min = int(curr['minute'])
+                curr_day = int(curr['day'])
+                #curr: 13.49    last: 16.52
+                if curr_day == last_day:
+                    if curr_min > thirty_min_ago and curr_hour == last_hour or curr_hour > last_hour and curr_min < thirty_min_ago:
+                        print(f"selam --->>> {data[i]['date']}")
+                        folium.Marker(location=[data[i]['lat'], data[i]['lng']]).add_to(m)
             thread_mongo.start()  # Thread başlar
 
         m = m._repr_html_()
